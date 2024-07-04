@@ -202,7 +202,15 @@ static int checkClicks(SDL_Event e) {
             n1->resetState();
             n1 = NULL;
             return 1;
+        } else {
+            //create a node, if Ctrl active.
+            if(SDL_GetModState() & KMOD_CTRL) {
+                objects.push_back(new GraphNode(x, y));
+                return 1;
+            }
+
         }
+
     }
 
 
