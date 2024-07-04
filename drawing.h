@@ -3,7 +3,7 @@
 #define DRAWING_H
 
 //identifiers for the state of a drawable object
-enum DrawState {
+enum DrawableState {
     ExpiredS,
     ActiveS
 };
@@ -16,12 +16,12 @@ class Drawable {
         virtual int onClick(double x, double y) = 0;
         //function to draw an object
         virtual void draw() = 0;
-        DrawState getState();
+        DrawableState getState();
         //make virtual destructor -- enable polymorphism for destructors in implementation classes
         virtual ~Drawable();
     private:
     protected:
-        DrawState state;
+        DrawableState state;
 };
 
 

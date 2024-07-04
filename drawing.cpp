@@ -1,6 +1,6 @@
 #include "drawing.h"
 
-DrawState Drawable::getState() {
+DrawableState Drawable::getState() {
     return state;
 }
 
