@@ -1,11 +1,13 @@
 HDRS = \
        drawing.h\
        graphs.h\
+       files.h\
 
 OBJS = \
        main.o\
        drawing.o\
        graphs.o\
+       files.o\
 
 all: main
 
@@ -19,6 +21,10 @@ drawing.o: drawing.cpp drawing.h
 	g++ -c drawing.cpp
 
 graphs.o: graphs.cpp graphs.h drawing.h
+	g++ -c graphs.cpp
+
+files.o: files.cpp graphs.h files.h
+	g++ -c files.cpp
 
 clean:
 	rm -fv $(OBJS)

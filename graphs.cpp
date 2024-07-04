@@ -1,5 +1,7 @@
 #include "graphs.h"
 
+//initialize total nodes to zero
+int GraphNode::totalNodes = 0;
 
 TraitFrame::TraitFrame() {
     //no special action needed -- current internal containers handle themselves
@@ -69,17 +71,23 @@ TraitType TraitFrame::lookup(string label, void **ret) {
 }
 
 
-GraphNode::GraphNode(double inX, double inY) {
+GraphNode::GraphNode(double inX, double inY, string inLabel) {
     x = inX;
     y = inY;
-
-    static int nodesMade = 0;
+    if(inLabel == "") {
+        label = "Node " + std::to_string(totalNodes);
+    } else {
+        label = inLabel;
+    }
 
     //temporary traits to test traitFrame functionality
     traits.addInt("times_clicked", 0);
-    traits.addInt("node_id", nodesMade++);
+    traits.addInt("node_id", totalNodes);
     traits.addDouble("value", 0.5);
-    traits.addString("name", "A Node");
+    traits.addString("type", "A Node");
+
+
+    totalNodes++;
 }
 
 int GraphNode::onClick(double inX, double inY) {
@@ -90,7 +98,7 @@ int GraphNode::onClick(double inX, double inY) {
     double dx = inX - x;
     double dy = inY - y;
     if((dx * dx) + (dy * dy) < 1) {
-        SDL_Log("Node clicked. Traits:");
+        SDL_Log("Node labeled \"%s\" clicked. Traits:", label.c_str());
         traits.tempPrint();
         SDL_Log("Node has %d edges.", edges.size());
 
@@ -108,7 +116,7 @@ int GraphNode::onClick(double inX, double inY) {
             double *dp = (double *)p;
             (*dp) *= 2;
         }
-        if(traits.lookup("name", &p) == StringT) {
+        if(traits.lookup("type", &p) == StringT) {
             string *sp = (string *)p;
             (*sp) = "Cat Hode";
         }

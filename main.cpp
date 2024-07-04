@@ -1,6 +1,7 @@
 //frontline event handling and render setup happen here
 #define SDL_MAIN_HANDLED
 #include "graphs.h"
+#include "files.h"
 
 //gluUnProject is used currently, other utilities may be later.
 #include <GL/GLU.h>
@@ -54,19 +55,25 @@ std::vector<Drawable *> objects;
 
 int main(int argc, char **argv) {
     if(initializeDisplay()) { return 1; }
-    
-    //simple hardcoded graph to test basics
-    objects.push_back(new GraphNode(5, 0));
-    objects.push_back(new GraphNode(5 * 0.707, 5 * 0.707));
-    objects.push_back(new GraphNode(0, 5));
-    objects.push_back(new GraphNode(-5 * 0.707, 5 * 0.707));
-    objects.push_back(new GraphNode(-5, 0));
-    objects.push_back(new GraphNode(-5 * 0.707, -5 * 0.707));
-    objects.push_back(new GraphNode(0, -5));
-    objects.push_back(new GraphNode(5 * 0.707, -5 * 0.707));
 
-    objects.push_back(new GraphEdge((GraphNode *)objects[0], (GraphNode *)objects[1]));
-    objects.push_back(((GraphNode *)objects[1])->link((GraphNode *)objects[5]));
+    if(argc > 1) {
+        //read in specified file
+        objects = loadGraph(argv[1]);
+
+    } else {
+        //simple hardcoded graph to test basics
+        objects.push_back(new GraphNode(5, 0, "First Node"));
+        objects.push_back(new GraphNode(5 * 0.707, 5 * 0.707));
+        objects.push_back(new GraphNode(0, 5));
+        objects.push_back(new GraphNode(-5 * 0.707, 5 * 0.707));
+        objects.push_back(new GraphNode(-5, 0));
+        objects.push_back(new GraphNode(-5 * 0.707, -5 * 0.707));
+        objects.push_back(new GraphNode(0, -5));
+        objects.push_back(new GraphNode(5 * 0.707, -5 * 0.707));
+
+        objects.push_back(new GraphEdge((GraphNode *)objects[0], (GraphNode *)objects[1]));
+        objects.push_back(((GraphNode *)objects[1])->link((GraphNode *)objects[5]));
+    }
 
     while(mainLoop()) {}
     

@@ -5,6 +5,6 @@ DrawableState Drawable::getState() {
 }
 
 Drawable::~Drawable() {
-    //no paticular destructor behavior needed.
+    //no particular destructor behavior needed.
 }
 

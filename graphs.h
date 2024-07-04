@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "drawing.h"
+
 #include "SDL.h"
 #include "SDL2/SDL_opengl.h"
 
@@ -65,7 +66,7 @@ class GraphEdge;
 //class representing a node in a graph
 class GraphNode : public Drawable {
     public:
-        GraphNode(double inX, double inY);
+        GraphNode(double inX, double inY, string inLabel = "");
         int onClick(double inX, double inY) override;
         void draw() override;
         
@@ -78,10 +79,15 @@ class GraphNode : public Drawable {
         //current drawing-position of the node in world-space
         double x, y;
         
+        //identifier used for the node
+        string label;
+        
         //all edges connected to this node
         std::vector<GraphEdge *> edges;
 
         TraitFrame traits;
+
+        static int totalNodes;
     private:
 };
 
