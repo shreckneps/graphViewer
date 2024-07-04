@@ -1,0 +1,13 @@
+Significant parts:
+    main
+        handles events and top-level initialization
+        maintains registries of things matching interfaces
+            asks the things to do their jobs -- drawables, be drawn.
+    drawing
+        interface specifications for things which are drawn.
+    graphs
+        defines data structures for representing node/edge graphs
+        includes structure for associating arbitrary data with any node/edge
+    files
+        handles file interactions for saving and loading graphs 
+

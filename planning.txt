@@ -1,0 +1,49 @@
+Further steps:
+    memory management 
+        current objects exist for duration of program.
+        destructors are needed to support:
+            deleting nodes (and edges)
+            saving/loading new graphs as the program runs
+        ownership nontrivial. edge/node -- does either own the other?
+        simple solution -- raw pointers between edges/nodes, registries of Drawable are smart ptrs.
+            shared ptrs support natural separation into Drawable and Clickable interfaces/registries
+            periodically check everything in a registry
+                if marked as expired, remove it from the registry
+                if in no other registries, it is deleted
+            still need to ensure no edge/node ptrs are pointing at a deleted thing
+                make destructor disassociate the other pointers?
+                manual management -- disassociate pointers whenever setting state to expired?
+    ui
+        need proper ui. 
+        structured methodology to:
+            move nodes around.
+            view/edit traits.
+            add/remove nodes and edges.
+            interact with files.
+        nuklear, dear imgui, other libraries available.
+        use clickable buttons or hotkeys to change state associated with the mouse. normal.
+    drawing
+        fancier shapes for nodes, edges with curves and arrows, et cetera
+        write graph object display via the ui library? should be feasible.
+        modernize the opengl? may make some things easier, and would expand capabilities.
+    file io
+        change to standard file format for graphs. json probably too feature rich. toml?
+        graph files should still be human readable, but should be more dense than they are now
+        also add support for context -- data not part of the logical graph, but associated
+            rendering information: node positions, drawing-rework configurations, etc
+            validation/templates: every node/edge should have XX traits
+        saving should probably be supported by member functions in individual classes
+            function in files.h can open the file, go through the graph, call methods
+            can facilitate better encapsulation since internal data is available:
+                no pressure to externalize data to support saving
+                ability to make use of abstracted details 
+    scripting.
+        provide api for scripts in python/lua/?? language
+        support traversal of the graph according to whatever rules
+        support modifying traits along the way
+        support changes to the visual display of the nodes/edges
+        can be used as a means for more sophisticated graph-type validation
+            types of graph associates with a certain script
+            script runs every save/load to ensure arbitrary conditions are met.
+
+
