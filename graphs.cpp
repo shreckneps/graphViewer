@@ -74,6 +74,7 @@ TraitType TraitFrame::lookup(string label, void **ret) {
 GraphNode::GraphNode(double inX, double inY, string inLabel) {
     x = inX;
     y = inY;
+    state = NormalS;
     if(inLabel == "") {
         label = "Node " + std::to_string(totalNodes);
     } else {
@@ -98,6 +99,8 @@ int GraphNode::onClick(double inX, double inY) {
     double dx = inX - x;
     double dy = inY - y;
     if((dx * dx) + (dy * dy) < 1) {
+        state = ActiveS;
+
         SDL_Log("Node labeled \"%s\" clicked. Traits:", label.c_str());
         traits.tempPrint();
         SDL_Log("Node has %d edges.", edges.size());
@@ -120,6 +123,16 @@ int GraphNode::onClick(double inX, double inY) {
             string *sp = (string *)p;
             (*sp) = "Cat Hode";
         }
+        
+        for(int i = 0; i < edges.size(); i++) {
+            SDL_Log("");
+            SDL_Log("Edge to \"%s\" has traits:", edges[i]->from(this)->label.c_str());
+            edges[i]->traits.tempPrint();
+        }
+
+
+        SDL_Log("");
+        SDL_Log("");
         return 1;
     }
     return 0;
@@ -139,6 +152,16 @@ void GraphNode::draw() {
     glVertex2d(x, y - 1);
     glVertex2d(x + 0.707, y - 0.707);
     glEnd();
+
+    if(state == ActiveS) {
+        //indicate active node for forming connections
+        glBegin(GL_LINES);
+        glVertex2d(x - 0.5, y);
+        glVertex2d(x + 0.5, y);
+        glVertex2d(x, y - 0.5);
+        glVertex2d(x, y + 0.5);
+        glEnd();
+    }
 }
 
 
@@ -149,7 +172,8 @@ GraphEdge *GraphNode::link(GraphNode *g) {
 GraphEdge::GraphEdge(GraphNode *n1, GraphNode *n2) {
     nodes[0] = n1;
     nodes[1] = n2;
-
+    state = NormalS;
+    
     n1->edges.push_back(this);
     n2->edges.push_back(this);
 }

@@ -162,15 +162,30 @@ static void updateDisplay() {
 }
 
 static int checkClicks(SDL_Event e) {
+    static GraphNode *n1 = NULL;
+    static GraphNode *n2 = NULL;
     if((e.type == SDL_MOUSEBUTTONDOWN)) {
         double x = e.button.x;
-        //sdl measurements are top-down, using bottom-up with opengl
         double y = e.button.y;
         screenToWorld(&x, &y);
         
         int i;
         for(i = 0; i < objects.size(); i++) {
             if(objects[i]->onClick(x, y)) {
+                //if clicking on two nodes in a row, link them
+                if(n1) {
+                    n2 = dynamic_cast<GraphNode *>(objects[i]);
+                    if(n2) {
+                        objects.push_back(n1->link(n2));
+                        n1->resetState();
+                        n2->resetState();
+                        n1 = NULL;
+                        n2 = NULL;
+                    }
+                } else {
+                    n1 = dynamic_cast<GraphNode *>(objects[i]);
+                }
+                
                 if(objects[i]->getState() == ExpiredS) {
                     //order of objects need not be preserved
                     //accelerate removal via pulling the last thing to the should-be-empty spot
@@ -181,8 +196,16 @@ static int checkClicks(SDL_Event e) {
                 return 1;
             }
         }
-        
+
+        //clicked nowhere -- deactivate any clicked node
+        if(n1) {
+            n1->resetState();
+            n1 = NULL;
+            return 1;
+        }
     }
+
+
     return 0;
 }
 

@@ -5,6 +5,7 @@
 //identifiers for the state of a drawable object
 enum DrawableState {
     ExpiredS,
+    NormalS,
     ActiveS
 };
 
@@ -19,6 +20,8 @@ class Drawable {
         DrawableState getState();
         //make virtual destructor -- enable polymorphism for destructors in implementation classes
         virtual ~Drawable();
+        //reset to normal state
+        void resetState();
     private:
     protected:
         DrawableState state;
