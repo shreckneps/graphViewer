@@ -30,7 +30,7 @@ void TraitFrame::tempPrint() {
 }
 
 void TraitFrame::addInt(string label, int value) {
-    if(traitInts.count(label) || traitDoubles.count(label) || traitStrings.count(label)) {
+    if(traitDoubles.count(label) || traitStrings.count(label)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Tried to add duplicate trait: %s", label.c_str());
     } else {
         traitInts[label] = value;
@@ -38,7 +38,7 @@ void TraitFrame::addInt(string label, int value) {
 }
 
 void TraitFrame::addDouble(string label, double value) {
-    if(traitInts.count(label) || traitDoubles.count(label) || traitStrings.count(label)) {
+    if(traitInts.count(label) || traitStrings.count(label)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Tried to add duplicate trait: %s", label.c_str());
     } else {
         traitDoubles[label] = value;
@@ -46,11 +46,25 @@ void TraitFrame::addDouble(string label, double value) {
 }
 
 void TraitFrame::addString(string label, string value) {
-    if(traitInts.count(label) || traitDoubles.count(label) || traitStrings.count(label)) {
+    if(traitInts.count(label) || traitDoubles.count(label)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Tried to add duplicate trait: %s", label.c_str());
     } else {
         traitStrings[label] = value;
     }
+}
+
+std::vector<string> TraitFrame::listLabels() {
+    std::vector<string> ret;
+    for(auto i = traitInts.begin(); i != traitInts.end(); ++i) {
+        ret.push_back(i->first);
+    }
+    for(auto i = traitDoubles.begin(); i != traitDoubles.end(); ++i) {
+        ret.push_back(i->first);
+    }
+    for(auto i = traitStrings.begin(); i != traitStrings.end(); ++i) {
+        ret.push_back(i->first);
+    }
+    return ret;
 }
 
 TraitType TraitFrame::lookup(string label, void **ret) {
@@ -81,7 +95,6 @@ GraphNode::GraphNode(double inX, double inY, string inLabel) {
         label = inLabel;
     }
 
-    //temporary traits to test traitFrame functionality
     traits.addInt("times_clicked", 0);
     traits.addInt("node_id", totalNodes);
     traits.addDouble("value", 0.5);

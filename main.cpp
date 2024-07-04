@@ -76,6 +76,8 @@ int main(int argc, char **argv) {
     }
 
     while(mainLoop()) {}
+
+    saveGraph(objects, "outputGraph.txt");
     
     SDL_GL_DeleteContext(context);
     SDL_Quit();

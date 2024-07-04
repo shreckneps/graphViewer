@@ -37,14 +37,17 @@ class TraitFrame {
         //temporary print function
         void tempPrint();
         
-        //insert an integer trait
+        //insert or update an integer trait
         void addInt(string label, int value);
 
-        //insert a floating-point trait
+        //insert or update a floating-point trait
         void addDouble(string label, double value);
 
-        //insert a string trait
+        //insert or update a string trait
         void addString(string label, string value);
+
+        //returns the label of every trait in the frame
+        std::vector<string> listLabels();
         
         //lookup a trait with a certain label
         //return-value is the identifier for the trait's type
@@ -81,13 +84,13 @@ class GraphNode : public Drawable {
         
         //identifier used for the node
         string label;
-        
-        //all edges connected to this node
-        std::vector<GraphEdge *> edges;
 
         TraitFrame traits;
 
         static int totalNodes;
+
+        //all edges connected to this node
+        std::vector<GraphEdge *> edges;
     private:
 };
 
@@ -105,8 +108,8 @@ class GraphEdge : public Drawable {
         GraphNode *from(GraphNode *source);
 
         TraitFrame traits;
-    private:
         GraphNode *nodes[2];
+    private:
 };
 
 
