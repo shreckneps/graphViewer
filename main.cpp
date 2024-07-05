@@ -154,8 +154,20 @@ static void updateDisplay() {
     
     glClear(GL_COLOR_BUFFER_BIT);
     
-    for(int i = 0; i < objects.size(); i++) {
-        objects[i]->draw();
+    int i = 0;
+    while(i < objects.size()) {
+        if(objects[i]->getState() == ExpiredS) {
+            //order of objects need not be preserved
+            //accelerate removal via pulling the last thing to the should-be-empty spot
+            //using a list-based structure would allow constant-time deletion and order-preservation
+            delete objects[i];
+            objects[i] = objects.back();
+            //objects[objects.size() - 1] = temp;
+            objects.pop_back();
+        } else {
+            objects[i]->draw();
+            i++;
+        }
     }
 
     //ensure the drawing is actually made visible.
@@ -174,34 +186,35 @@ static int checkClicks(SDL_Event e) {
         int i;
         for(i = 0; i < objects.size(); i++) {
             if(objects[i]->onClick(x, y)) {
-                //if clicking on two nodes in a row, link them
-                if(n1) {
-                    n2 = dynamic_cast<GraphNode *>(objects[i]);
-                    if(n2) {
-                        objects.push_back(n1->link(n2));
-                        n1->resetState();
-                        n2->resetState();
-                        n1 = NULL;
-                        n2 = NULL;
-                    }
+                if(objects[i]->getState() == ExpiredS) {
+                    //object is now marked for deletion -- will be removed from the drawable registry
                 } else {
-                    n1 = dynamic_cast<GraphNode *>(objects[i]);
+                    //if clicking on two nodes in a row, link them
+                    if(n1) {
+                        n2 = dynamic_cast<GraphNode *>(objects[i]);
+                        if(n2) {
+                            objects.push_back(n1->link(n2));
+                            n1->resetState();
+                            n2->resetState();
+                            n1 = NULL;
+                            n2 = NULL;
+                        }
+                    } else {
+                        n1 = dynamic_cast<GraphNode *>(objects[i]);
+                    }
                 }
                 
-                if(objects[i]->getState() == ExpiredS) {
-                    //order of objects need not be preserved
-                    //accelerate removal via pulling the last thing to the should-be-empty spot
-                    delete objects[i];
-                    objects[i] = objects.back();
-                    objects.pop_back();
-                }
                 return 1;
             }
         }
 
-        //clicked nowhere -- deactivate any clicked node
+        //clicked nowhere -- deactivate and potentially move any clicked node
         if(n1) {
             n1->resetState();
+            if(SDL_GetModState() & KMOD_CTRL) {
+                n1->x = x;
+                n1->y = y;
+            }
             n1 = NULL;
             return 1;
         } else {

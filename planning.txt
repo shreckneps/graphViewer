@@ -1,18 +1,20 @@
 Further steps:
     memory management 
-        current objects exist for duration of program.
-        destructors are needed to support:
-            deleting nodes (and edges)
-            saving/loading new graphs as the program runs
         ownership nontrivial. edge/node -- does either own the other?
         simple solution -- raw pointers between edges/nodes, registries of Drawable are smart ptrs.
+            edge does not own node. node does not own edge. registry in main owns both.
             shared ptrs support natural separation into Drawable and Clickable interfaces/registries
             periodically check everything in a registry
                 if marked as expired, remove it from the registry
                 if in no other registries, it is deleted
             still need to ensure no edge/node ptrs are pointing at a deleted thing
                 make destructor disassociate the other pointers?
+                    requires destructor calls in guaranteed order, or weird convolutions
+                    e.g. delete(node); delete(edge) -- edge tries to remove itself from node's list
+                    could do it by making the disassociation cut both ways
+                        i.e. node removes itself from edge, so when edge deletes, it doesnt fail
                 manual management -- disassociate pointers whenever setting state to expired?
+                    this is current approach, may not scale with more complex editting
     ui
         need proper ui. 
         structured methodology to:
@@ -37,6 +39,8 @@ Further steps:
             can facilitate better encapsulation since internal data is available:
                 no pressure to externalize data to support saving
                 ability to make use of abstracted details 
+            also removes responsibility of dynamic casting and type checking of drawables
+            simply call the drawable::print() virtual function
     scripting.
         provide api for scripts in python/lua/?? language
         support traversal of the graph according to whatever rules

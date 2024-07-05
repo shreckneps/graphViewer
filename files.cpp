@@ -62,9 +62,20 @@ std::vector<Drawable *> loadGraph(string fileName) {
             }
             if(nodes.count(lines[1])) {
                 n1 = nodes[lines[1]];
+            } else {
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                             "Unrecognized node label: \"%s\"", lines[1].c_str());
+                n1 = NULL;
             }
             if(nodes.count(lines[2])) {
                 n2 = nodes[lines[2]];
+            } else {
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                             "Unrecognized node label: \"%s\"", lines[1].c_str());
+                n2 = NULL;
+            }
+            if(!(n1 && n2)) {
+                return ret;
             }
 
             e = new GraphEdge(n1, n2);
@@ -104,6 +115,7 @@ std::vector<Drawable *> loadGraph(string fileName) {
             lines[1] = lines[2];
         }
     }
+    f.close();
     
 
     //space all nodes around a circle
@@ -129,65 +141,38 @@ void saveGraph(std::vector<Drawable *> g, string fileName) {
 
     GraphNode *n;
     GraphEdge *e;
-    TraitFrame *activeTraits = NULL;
+    std::vector<GraphEdge *> edges;
     for(int i = 0; i < g.size(); i++) {
         n = dynamic_cast<GraphNode *>(g[i]);
         e = dynamic_cast<GraphEdge *>(g[i]);
         if(n) {
             f << "Node" << std::endl;
             f << n->label << std::endl;
-            activeTraits = &(n->traits);
+            n->traits.save(f);
         } else if(e) {
-            f << "Edge" << std::endl;
-            f << e->nodes[0]->label << std::endl;
-            f << e->nodes[1]->label << std::endl;
-            activeTraits = &(e->traits);
+            //Current parsing of graph files does only a single pass
+            //an edge cannot be declared before either of its nodes
+            //the drawable registry does not provide strict guarantees of order
+            //standardizing output files to place edges last guarantees readability of file
+            edges.push_back(e);
         } else {
             //this is not necessarily an error.
             //future saving will also support context, like drawing position of nodes
             //future drawables could include annotation objects
             //these would not be part of the logical graph, but saving them may be desirable
             SDL_Log("Non-graph drawable present in saveGraph.");
-            activeTraits = NULL;
-        }
-        if(activeTraits) {
-            //TODO
-            //this is not an efficient way of saving the trait frame.
-            //a more efficient way would directly involve the internal containers
-            //  could violate the interface encapsulation to do that here
-            //  could add a dedicated function TraitFrame::saveFrame(stream reference)
-            //      decentralizes file io -- still a better solution
-            std::vector<string> labels = activeTraits->listLabels();
-            int *ip;
-            double *dp;
-            string *sp;
-            void *p;
-            for(int j = 0; j < labels.size(); j++) {
-                switch(activeTraits->lookup(labels[j], &p)) {
-                    case IntT:
-                        ip = (int *)p;
-                        f << "Int" << std::endl;
-                        f << labels[j] << std::endl;
-                        f << *ip << std::endl;
-                        break;
-                    case DoubleT:
-                        dp = (double *)p;
-                        f << "Double" << std::endl;
-                        f << labels[j] << std::endl;
-                        f << *dp << std::endl;
-                        break;
-                    case StringT:
-                        sp = (string *)p;
-                        f << "String" << std::endl;
-                        f << labels[j] << std::endl;
-                        f << *sp << std::endl;
-                        break;
-                    default:
-                        break;
-                }
-            }
         }
         f << std::endl;
     }
+    for(int i = 0; i < edges.size(); i++) {
+        SDL_Log("%d", i);
+        e = edges[i];
+        f << "Edge" << std::endl;
+        f << e->nodes[0]->label << std::endl;
+        f << e->nodes[1]->label << std::endl;
+        e->traits.save(f);
+        f << std::endl;
+    }
+    f.close();
 }
 

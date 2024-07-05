@@ -84,6 +84,21 @@ TraitType TraitFrame::lookup(string label, void **ret) {
     return NoneT;
 }
 
+//function to write the traits to a given file
+void TraitFrame::save(std::ofstream &f) {
+    for(auto i = traitInts.begin(); i != traitInts.end(); ++i) {
+        f << "Int" << std::endl << i->first << std::endl << i->second << std::endl;
+    }
+
+    for(auto i = traitDoubles.begin(); i != traitDoubles.end(); ++i) {
+        f << "Double" << std::endl << i->first << std::endl << i->second << std::endl;
+    }
+
+    for(auto i = traitStrings.begin(); i != traitStrings.end(); ++i) {
+        f << "String" << std::endl << i->first << std::endl << i->second << std::endl;
+    }
+}
+
 
 GraphNode::GraphNode(double inX, double inY, string inLabel) {
     x = inX;
@@ -104,6 +119,10 @@ GraphNode::GraphNode(double inX, double inY, string inLabel) {
     totalNodes++;
 }
 
+GraphNode::~GraphNode() {
+    SDL_Log("Deleted node labeled \"%s\"", label.c_str());
+}
+
 int GraphNode::onClick(double inX, double inY) {
     //simple check if within unit circle for now
     //complex draw-shapes later on will require rework for precise behavior
@@ -112,8 +131,6 @@ int GraphNode::onClick(double inX, double inY) {
     double dx = inX - x;
     double dy = inY - y;
     if((dx * dx) + (dy * dy) < 1) {
-        state = ActiveS;
-
         SDL_Log("Node labeled \"%s\" clicked. Traits:", label.c_str());
         traits.tempPrint();
         SDL_Log("Node has %d edges.", edges.size());
@@ -146,6 +163,17 @@ int GraphNode::onClick(double inX, double inY) {
 
         SDL_Log("");
         SDL_Log("");
+
+        //if shift is pressed, mark the node for deletion, rather than for making a new edge
+        if(SDL_GetModState() & KMOD_SHIFT) {
+            state = ExpiredS;
+            //mark all connected edges for deletion as well
+            for(int i = 0; i < edges.size(); i++) {
+                edges[i]->cut(this);
+            }
+        } else {
+            state = ActiveS;
+        }
         return 1;
     }
     return 0;
@@ -154,6 +182,10 @@ int GraphNode::onClick(double inX, double inY) {
 void GraphNode::draw() {
     //draw octagon inside unit-circle for now
     //support for fancier shapes later, in drawing-rework
+    if(state == ExpiredS) {
+        return;
+    }
+
     glBegin(GL_LINE_LOOP);
     glColor3d(0, 0, 0);
     glVertex2d(x + 1, y);
@@ -182,6 +214,18 @@ GraphEdge *GraphNode::link(GraphNode *g) {
     return new GraphEdge(this, g);
 }
 
+void GraphNode::cut(GraphEdge *source) {
+    for(int i = 0; i < edges.size(); i++) {
+        if(edges[i] == source) {
+            //GraphEdge *temp = edges[i];
+            edges[i] = edges.back();
+            //edges[edges.size() - 1] = temp;
+            edges.pop_back();
+            return;
+        }
+    }
+}
+
 GraphEdge::GraphEdge(GraphNode *n1, GraphNode *n2) {
     nodes[0] = n1;
     nodes[1] = n2;
@@ -189,6 +233,10 @@ GraphEdge::GraphEdge(GraphNode *n1, GraphNode *n2) {
     
     n1->edges.push_back(this);
     n2->edges.push_back(this);
+}
+
+GraphEdge::~GraphEdge() {
+    SDL_Log("Deleted edge.");
 }
 
 int GraphEdge::onClick(double x, double y) {
@@ -199,11 +247,13 @@ void GraphEdge::draw() {
     //simple line from n[0] to n[1]
     //how to show self-cycles? multiplicity?
     //more complex, let be invisible now, handle in drawing-rework
-    glBegin(GL_LINES);
-    glColor3d(0, 0, 0);
-    glVertex2d(nodes[0]->x, nodes[0]->y);
-    glVertex2d(nodes[1]->x, nodes[1]->y);
-    glEnd();
+    if(state != ExpiredS && nodes[0] && nodes[1]) {
+        glBegin(GL_LINES);
+        glColor3d(0, 0, 0);
+        glVertex2d(nodes[0]->x, nodes[0]->y);
+        glVertex2d(nodes[1]->x, nodes[1]->y);
+        glEnd();
+    }
 }
 
 GraphNode *GraphEdge::from(GraphNode *source) {
@@ -214,6 +264,23 @@ GraphNode *GraphEdge::from(GraphNode *source) {
     }
     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Tried to traverse an edge from a node the edge does not touch.");
     return NULL;
+}
+
+void GraphEdge::cut(GraphNode *source) {
+    state = ExpiredS;
+    if(source == nodes[0]) {
+        //cutting happens when a thing marks itself for deletion
+        nodes[0] = NULL;
+    } else {
+        nodes[0]->cut(this);
+    }
+    //support for self-cycles -- these two ifs are not mutually exclusive
+    //also supports cutting an edge to delete it cleanly without deleting its nodes
+    if(source == nodes[1]) {
+        nodes[1] = NULL;
+    } else {
+        nodes[1]->cut(this);
+    }
 }
 
 

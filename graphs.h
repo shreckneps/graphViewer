@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <fstream>
+
 #include "drawing.h"
 
 #include "SDL.h"
@@ -54,6 +56,9 @@ class TraitFrame {
         //if this is not NoneT, (*ret) is set to the address of the trait value
         //this allows both reading and updating of existing traits
         TraitType lookup(string label, void **ret);
+        
+        //function to write the traits to a given file
+        void save(std::ofstream &f);
 
     private:
         //internal containers for traits
@@ -72,12 +77,19 @@ class GraphNode : public Drawable {
         GraphNode(double inX, double inY, string inLabel = "");
         int onClick(double inX, double inY) override;
         void draw() override;
+
+        ~GraphNode();
+        
         
         //function that creates a link to a target node g
         //returns pointer to the created edge
         //multiplicity is allowed -- this will always create a new edge, even if one already exists
         //self-cycles are allowed -- this may create a link between a node and itself
         GraphEdge *link(GraphNode *g);
+
+        //function that removes an edge from a node's list
+        //this is called when an edge is marked for deletion, to prevent orphaned pointers
+        void cut(GraphEdge *source);
         
         //current drawing-position of the node in world-space
         double x, y;
@@ -101,11 +113,21 @@ class GraphEdge : public Drawable {
         //this not only sets the nodes[] member of the edge
         //it additionally adds the new edge to the nodes' list of edges
         GraphEdge(GraphNode *n1, GraphNode *n2);
+        ~GraphEdge();
         int onClick(double x, double y) override;
         void draw() override;
 
         //function that returns the other end of an edge
         GraphNode *from(GraphNode *source);
+        //function that marks an edge for deletion
+        //the caller is used to know which end of the edge is also being deleted
+        //a node which isn't also being deleted must have its list of edges trimmed, to remove this one
+        void cut(GraphNode *source);
+        
+        //deliberate overlap in names/usage between GraphNode::cut() and GraphEdge::cut()
+        //naming intuition here is an edge as a string tied between two nodes
+        //a cut happens at one end
+        //dangling string is not desirable, so the other end is also cut, and the string falls.
 
         TraitFrame traits;
         GraphNode *nodes[2];
